@@ -1,35 +1,84 @@
+from typing import Dict
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-
+from ai.gemini import Gemini
 from db.database_manager import DatabaseManager
 
-# Replace with your service account key path
+
+
 SERVICE_ACCOUNT_KEY_PATH = "serviceAccountKey.json"
 
 app = FastAPI()
 db_manager = DatabaseManager(SERVICE_ACCOUNT_KEY_PATH)
+gemini_client = Gemini("")
 
-class UpdateData(BaseModel):
-    user_id: str
-    data: dict
+# genAI endpoints
+class StartChatRequest(BaseModel):
+    user_id: str #Or any user identifier.
 
-@app.post("/update_user_data/")
-async def update_user_data(update_data: UpdateData):
-    """Updates user data in Firestore."""
+class SendMessageRequest(BaseModel):
+    session_id: str
+    message: str
+
+
+@app.post("/start_chat/")
+async def start_chat(request: StartChatRequest):
+    """Starts a new chat session."""
     try:
-        db_manager.update_user_data(update_data.user_id, update_data.data)
-        return {"message": "User data updated successfully"}
+        session_id = gemini_client.start_chat()
+        return {"session_id": session_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/check_user_data/{user_id}")
-async def check_user_data(user_id: str):
-    """Checks the data that has been updated."""
+@app.post("/send_message/")
+async def send_message(request: SendMessageRequest):
+    """Sends a message to an existing chat session."""
     try:
-        user_data = db_manager.get_user_data(user_id)
-        if user_data:
-            return user_data
-        else:
-            raise HTTPException(status_code=404, detail="User not found")
+        response = gemini_client.send_message(request.session_id, request.message)
+        return {"response": response}
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
     except Exception as e:
-         raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# function to add mock data to firebase 
+# add a user
+class UserData(BaseModel):
+    user_id: str
+    user_data: Dict
+
+@app.post("/add_user/")
+async def add_user(user_data: UserData):
+    """Adds a user to Firestore."""
+    try:
+        db_manager.add_user(user_data.user_id, user_data.user_data)
+        return {"message": "User added successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+# add list of entries for a given user
+@app.post("/add_entries/")
+async def add_entries(data: Dict):
+    """Adds a list of entries to a user's collection in Firestore."""
+    try:
+        user_id = data.get("user_id")
+        entries = data.get("journal_entries")
+
+        if not user_id or not entries or not isinstance(entries, list):
+            raise HTTPException(status_code=400, detail="Invalid request format")
+
+        for entry in entries:
+            date = entry.get("date")
+            entry_data = entry
+
+            if not date or not isinstance(entry_data, dict):
+                raise HTTPException(status_code=400, detail="Invalid entry format")
+
+            db_manager.add_journal_entry(user_id, entry_data, date)
+
+        return {"message": "Entries added successfully"}
+    except HTTPException as http_exception:
+        raise http_exception
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -42,3 +42,11 @@ class DatabaseManager:
             self.db.collection("users").document(user_id).set(data)
         except Exception as e:
             raise Exception(f"Failed to update user data: {e}")
+    
+    def add_journal_entry(self, user_id: str, journal_entry: Dict, date:str):
+        """Adds a single journal entry to a user's collection in Firestore."""
+        try:
+            user_ref = self.db.collection("users").document(user_id)
+            user_ref.collection("journalEntries").document(date).set(journal_entry)
+        except Exception as e:
+            raise Exception(f"Failed to add journal entry: {e}")

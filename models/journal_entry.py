@@ -23,17 +23,12 @@ class Mood(BaseModel):
     specificMood: List[str]
     stressLevel: int
 
-class MenstrualCycle(BaseModel):
-    phase: str
-    symptoms: List[str]
-
 class JournalEntry(BaseModel):
     date: str
     sleep: Sleep
     diet: Diet
     exercise: Exercise
     mood: Mood
-    menstrualCycle: MenstrualCycle
     creativeTime: int
     socialInteractions: int
     screenTime: int
