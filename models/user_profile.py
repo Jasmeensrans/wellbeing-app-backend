@@ -5,18 +5,11 @@ class Goal(BaseModel):
     goal: str
     progress: str
 
-class SignificantEvent(BaseModel):
-    event: str
-    date: str
 
 class SuggestedAssignment(BaseModel):
     assignment: str
     completed: bool
 
-class SelfAssessmentResult(BaseModel):
-    scale: str
-    score: int
-    date: str
 
 class ChatLogEntry(BaseModel):
     timestamp: str
@@ -39,9 +32,8 @@ class UserProfile(BaseModel):
     observedBehavior: ObservedBehavior
     currentGoals: List[Goal]
     keyThemes: List[str]
-    significantEvents: List[SignificantEvent]
+    significantEvents: List[str]
     suggestedAssignments: List[SuggestedAssignment]
-    selfAssessmentResults: List[SelfAssessmentResult]
     chatLog: List[ChatLogEntry]
 
 class UserProfileData(BaseModel):

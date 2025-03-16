@@ -1,3 +1,4 @@
+import traceback
 from typing import Dict
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -10,7 +11,9 @@ SERVICE_ACCOUNT_KEY_PATH = "serviceAccountKey.json"
 
 app = FastAPI()
 db_manager = DatabaseManager(SERVICE_ACCOUNT_KEY_PATH)
-gemini_client = Gemini("")
+gemini_client = Gemini("AIzaSyCSQ72IcnYti_Jz0_q4-Yc0a0lT3y66cRA")
+response =  gemini_client.generate_content("how many years do dogs live?")
+print(response)
 
 # genAI endpoints
 class StartChatRequest(BaseModel):
@@ -19,7 +22,9 @@ class StartChatRequest(BaseModel):
 class SendMessageRequest(BaseModel):
     session_id: str
     message: str
-
+    
+class SingleMessageRequest(BaseModel):
+    message: str
 
 @app.post("/start_chat/")
 async def start_chat(request: StartChatRequest):
@@ -41,6 +46,27 @@ async def send_message(request: SendMessageRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/get_single_response/")
+async def get_single_response(request: SingleMessageRequest):
+    """Sends a message to an existing chat session."""
+    try:
+        response =  gemini_client.generate_content(request.message)
+        return {"response": response}
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/end_chat/")
+async def end_chat(request: EndChatRequest):
+    """Ends an existing chat session."""
+    try:
+        gemini_client.end_chat(request.session_id)
+        return {"message": "Chat session ended successfully"}
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # function to add mock data to firebase 
 # add a user
@@ -82,3 +108,8 @@ async def add_entries(data: Dict):
         raise http_exception
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/health")
+async def health_check():
+    """Checks if the API is running."""
+    return {"status": "ok"}

@@ -7,7 +7,7 @@ import uuid  # For generating unique session IDs
 class Gemini:
     """A class to interact with the Gemini language model."""
 
-    def __init__(self, api_key: str = None, model_name: str = 'gemini-pro'):
+    def __init__(self, api_key: str = None, model_name: str = 'gemini-1.5-flash'):
         """
         Initializes the Gemini class.
         """
@@ -34,3 +34,18 @@ class Gemini:
         chat = self.chat_sessions[session_id]
         response = chat.send_message(message)
         return response.text
+    
+    def generate_content(self, message: str) -> str:
+        """Generates a single response from Gemini without a chat session (async)."""
+        try:
+            response =  self.model.generate_content(message)
+            return response.text
+        except Exception as e:
+            raise ValueError(f"Error generating content: {e}")
+
+    def end_chat(self, session_id: str):
+        """Ends a chat session."""
+        if session_id in self.chat_sessions:
+            del self.chat_sessions[session_id]
+        else:
+            raise ValueError("Session not found")
