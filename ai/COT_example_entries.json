@@ -1,0 +1,109 @@
+[
+    {
+        "date": "2023-11-01",
+        "water_intake": 7,
+        "sleep": {
+          "hours": 8,
+          "quality": 5,
+          "bed_time": "2023-11-01T22:00:00Z"
+        },
+        "diet": {
+          "sugar_intake": 2,
+          "caffeine_intake": 50,
+          "diet": "Balanced"
+        },
+        "exercise": {
+          "duration": 60,
+          "intensity": 10,
+          "type": "swimming"
+        },
+        "mood": [
+        {
+        "mood":"tired",
+        "level": 4
+        },
+        {
+         "mood":"energized",
+        "level": 10
+        }
+          {
+         "mood":"calm",
+        "level": 4
+        }
+        ],
+        "daily_spending": 30,
+        "journal": "Had a great run this morning. Felt very productive at work. Ate a healthy dinner.",
+        "gratitude": ["My family", "A beautiful sunrise"],
+        "read": true,
+        "socialize": true,
+        "meditate": true
+      },   
+      {
+        "date": "2023-11-01",
+        "water_intake": 7,
+        "sleep": {
+          "hours": 4,
+          "quality": 3,
+          "bed_time": "2023-11-01T22:00:00Z"
+        },
+        "diet": {
+          "sugar_intake": 2,
+          "caffeine_intake": 120,
+          "diet": "Balanced"
+        },
+        "exercise": {
+          "duration": 0,
+          "intensity": 0,
+          "type": ""
+        },
+        "mood": {
+          "mood": [],
+          "level": 9
+        },
+        "daily_spending": 30,
+        "journal": "Work was okay, nothing for today",
+        "gratitude": ["My family", "A beautiful sunrise"],
+        "read": true,
+        "socialize": true,
+        "meditate": true
+      },
+      {
+        "date": "2023-11-01",
+        "water_intake": 7,
+        "sleep": {
+          "hours": 8,
+          "quality": 5,
+          "bed_time": "2023-11-01T22:00:00Z"
+        },
+        "diet": {
+          "sugar_intake": 2,
+          "caffeine_intake": 50,
+          "diet": "Balanced"
+        },
+        "exercise": {
+          "duration": 60,
+          "intensity": 10,
+          "type": "swimming"
+        },
+        "mood": [
+        {
+        "mood":"tired",
+        "level": 4
+        },
+        {
+         "mood":"energized",
+        "level": 10
+        }
+          {
+         "mood":"calm",
+        "level": 4
+        }
+        ],
+        "daily_spending": 30,
+        "journal": "Had a great run this morning. Felt very productive at work. Ate a healthy dinner.",
+        "gratitude": ["My family", "A beautiful sunrise"],
+        "read": true,
+        "socialize": true,
+        "meditate": true
+      }
+]

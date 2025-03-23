@@ -25,7 +25,7 @@ def map_dict_to_string(data: dict, indent: int = 0) -> str:
             result += f"{indent_str}{key}: {value}\n"
     return result
 
-def getInitialChatPrompt(user_profile: Dict, journal_entries: List[Dict]) -> str:
+def get_initial_chat_prompt(user_profile: Dict, journal_entries: List[Dict]) -> str:
     """
     Generates the initial chat prompt for a therapy session, incorporating user profile and journal entries.
 
@@ -76,7 +76,7 @@ def getInitialChatPrompt(user_profile: Dict, journal_entries: List[Dict]) -> str
     """
     return prompt
 
-def getClosingChatPrompt(user_profile: Dict) -> str:
+def get_closing_chat_prompt(user_profile: Dict) -> str:
     """
     Generates the closing chat prompt for a therapy session, incorporating user profile and chat log.
 
@@ -122,3 +122,35 @@ def getClosingChatPrompt(user_profile: Dict) -> str:
     
     return prompt
     
+def get_correlation_prompt_cot(articles: List[Dict]) -> str:
+    """
+    Generates a prompt to find correlations from a list of articles, using chain-of-thought prompting
+    Args:
+        articles: A list of dictionaries, where each dictionary represents an article.
+
+    Returns:
+        A string representing the correlation prompt.
+    """
+
+    # Load example entries from COT_exaple_entries.json
+    try:
+        with open("COT_exaple_entries.json", "r") as f:
+            example_entries = json.load(f)
+    except FileNotFoundError:
+        example_entries = [{"Sleep Duration": "8 hours", "Exercise": "Intense, 2 hours", "Sleep Quality": "Good"},
+                           {"Sleep Duration": "5 hours", "Caffeine": "120mg", "Sleep Quality": "Poor"},
+                           {"Sleep Duration": "8 hours", "Exercise": "Intense, 2 hours", "Mood": "Positive"}]
+
+    example_entries_str = "\n".join([str(entry) for entry in example_entries])
+
+    articles_str = "\n".join([str(article) for article in articles])
+
+    prompt = f"""
+    Q. What correlations do you notice from the following journal entries {example_entries_str}
+    Explanation:
+    Sleep duration and quality was better with intense and long exercise. Sleep duration and quality was poor with high consumption of caffine (120mg). Mood was more positive with good sleep and intensive exervcise
+    Answer: Better sleep has been correlated with exercise. High consumption of caffiene has been correlated with poor sleep. Positive mood has been correlated with good sleep and exercise
+    Q. What correlations do you notice in the following articles {articles_str}
+    Answer:
+    """
+    return prompt

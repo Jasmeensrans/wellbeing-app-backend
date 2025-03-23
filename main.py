@@ -4,8 +4,9 @@ from typing import Dict, List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from ai.gemini import Gemini
-from ai.prompt import getClosingChatPrompt, getInitialChatPrompt
+from ai.prompt import get_correlation_prompt_cot, get_initial_chat_prompt
 from db.database_manager import DatabaseManager
+from utils.entry_utils import get_entries_by_date_range
 
 SERVICE_ACCOUNT_KEY_PATH = "serviceAccountKey.json"
 
@@ -28,6 +29,13 @@ class SendMessageRequest(BaseModel):
 class SingleMessageRequest(BaseModel):
     message: str
 
+class CorrelationRequest(BaseModel):
+    user_id: str
+    start_date: str
+    end_date: str
+
+
+# Chat endpoints
 @app.post("/start_chat/")
 async def start_chat(request: StartChatRequest):
     """Starts a new chat session."""
@@ -39,7 +47,7 @@ async def start_chat(request: StartChatRequest):
         user_persona = db_manager.get_user_persona(request.user_id)
 
         # prompt chat with the journal entries to set context
-        prefix_prompt = getInitialChatPrompt(user_persona, journal_entries)
+        prefix_prompt = get_initial_chat_prompt(user_persona, journal_entries)
         gemini_client.send_message(session_id, prefix_prompt)
         return {"session_id": session_id}
     except Exception as e:
@@ -86,8 +94,25 @@ async def end_chat(request: EndChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# Correlation/Insights endpoints
+@app.post("/get_correlations/")
+async def get_correlations(request: CorrelationRequest):
+    try:
+        # Fetch journal entries within the specified date range for the user
+        entries = db_manager.get_user_journal_entries(request.user_id)
 
+        #Filter the journal entries by date range, using the helper function.
+        filtered_entries = get_entries_by_date_range(entries, request.start_date, request.end_date)
+        print(filtered_entries)
+        # Create prompt
+        prompt = get_correlation_prompt_cot(filtered_entries)
 
+        # Fetch response
+        response = gemini_client.generate_content(prompt)
+        return response
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # function to add mock data to firebase
