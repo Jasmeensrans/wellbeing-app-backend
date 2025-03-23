@@ -1,28 +1,30 @@
+import json
 import traceback
-from typing import Dict
+from typing import Dict, List
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from ai.gemini import Gemini
+from ai.prompt import getClosingChatPrompt, getInitialChatPrompt
 from db.database_manager import DatabaseManager
-
-
 
 SERVICE_ACCOUNT_KEY_PATH = "serviceAccountKey.json"
 
 app = FastAPI()
 db_manager = DatabaseManager(SERVICE_ACCOUNT_KEY_PATH)
 gemini_client = Gemini("AIzaSyCSQ72IcnYti_Jz0_q4-Yc0a0lT3y66cRA")
-response =  gemini_client.generate_content("how many years do dogs live?")
-print(response)
 
 # genAI endpoints
 class StartChatRequest(BaseModel):
-    user_id: str #Or any user identifier.
+    user_id: str  # Or any user identifier.
+
+class EndChatRequest(BaseModel):
+    user_id: str  # Or any user identifier.
+    session_id: str
 
 class SendMessageRequest(BaseModel):
     session_id: str
     message: str
-    
+
 class SingleMessageRequest(BaseModel):
     message: str
 
@@ -31,6 +33,14 @@ async def start_chat(request: StartChatRequest):
     """Starts a new chat session."""
     try:
         session_id = gemini_client.start_chat()
+        # get the users journal entries using the user_id
+        journal_entries = db_manager.get_user_journal_entries(request.user_id)
+        # get user persona
+        user_persona = db_manager.get_user_persona(request.user_id)
+
+        # prompt chat with the journal entries to set context
+        prefix_prompt = getInitialChatPrompt(user_persona, journal_entries)
+        gemini_client.send_message(session_id, prefix_prompt)
         return {"session_id": session_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -50,7 +60,7 @@ async def send_message(request: SendMessageRequest):
 async def get_single_response(request: SingleMessageRequest):
     """Sends a message to an existing chat session."""
     try:
-        response =  gemini_client.generate_content(request.message)
+        response = gemini_client.generate_content(request.message)
         return {"response": response}
     except ValueError as ve:
         raise HTTPException(status_code=404, detail=str(ve))
@@ -61,6 +71,13 @@ async def get_single_response(request: SingleMessageRequest):
 async def end_chat(request: EndChatRequest):
     """Ends an existing chat session."""
     try:
+        # send the closing prompt to gemini and update the user personal in firebase
+        # TODO: fix this later
+        # current_user_persona = db_manager.get_user_persona(request.user_id)
+        # closing_prompt = getClosingChatPrompt(current_user_persona)
+        # new_persona_json = gemini_client.send_message(request.session_id, closing_prompt)
+        # data = json.loads(new_persona_json) # this fails!!
+        # db_manager.store_user_persona(data["userProfile"], request.user_id)
         gemini_client.end_chat(request.session_id)
         return {"message": "Chat session ended successfully"}
     except ValueError as ve:
@@ -68,7 +85,12 @@ async def end_chat(request: EndChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# function to add mock data to firebase 
+
+
+
+
+
+# function to add mock data to firebase
 # add a user
 class UserData(BaseModel):
     user_id: str
@@ -82,7 +104,7 @@ async def add_user(user_data: UserData):
         return {"message": "User added successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 # add list of entries for a given user
 @app.post("/add_entries/")
 async def add_entries(data: Dict):
@@ -101,14 +123,14 @@ async def add_entries(data: Dict):
             if not date or not isinstance(entry_data, dict):
                 raise HTTPException(status_code=400, detail="Invalid entry format")
 
-            db_manager.add_journal_entry(user_id, entry_data, date)
+            db_manager.add_journal_entry(user_id, entry_data)
 
         return {"message": "Entries added successfully"}
     except HTTPException as http_exception:
         raise http_exception
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.get("/health")
 async def health_check():
     """Checks if the API is running."""

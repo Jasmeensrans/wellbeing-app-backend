@@ -1,5 +1,5 @@
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import List
+from pydantic import BaseModel
 
 class Goal(BaseModel):
     goal: str
@@ -11,11 +11,6 @@ class SuggestedAssignment(BaseModel):
     completed: bool
 
 
-class ChatLogEntry(BaseModel):
-    timestamp: str
-    userMessage: str
-    aiMessage: str
-
 class ObservedMood(BaseModel):
     overallTrend: str
     recentFluctuations: str
@@ -24,7 +19,7 @@ class ObservedBehavior(BaseModel):
     avoidance: str
     concentration: str
 
-class UserProfile(BaseModel):
+class UserPersona(BaseModel):
     userId: str
     presentingSymptoms: List[str]
     observedPatterns: List[str]
@@ -34,8 +29,7 @@ class UserProfile(BaseModel):
     keyThemes: List[str]
     significantEvents: List[str]
     suggestedAssignments: List[SuggestedAssignment]
-    chatLog: List[ChatLogEntry]
 
-class UserProfileData(BaseModel):
-    userProfile: UserProfile
+class UserPersonaData(BaseModel):
+    userProfile: UserPersona
     
