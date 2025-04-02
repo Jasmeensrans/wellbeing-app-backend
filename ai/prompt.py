@@ -150,7 +150,7 @@ def get_correlation_prompt_cot(articles: List[Dict]) -> str:
     Explanation:
     Sleep duration and quality was better with intense and long exercise. Sleep duration and quality was poor with high consumption of caffine (120mg). Mood was more positive with good sleep and intensive exervcise
     Answer: Better sleep has been correlated with exercise. High consumption of caffiene has been correlated with poor sleep. Positive mood has been correlated with good sleep and exercise
-    Q. What correlations do you notice in the following articles {articles_str}
+    Q. What correlations do you notice in the following articles {articles_str}. Make sure your answer is around 300 characters
     Answer:
     """
     return prompt

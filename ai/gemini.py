@@ -1,8 +1,7 @@
-import google.generativeai as genai
-from fastapi import FastAPI, HTTPException
+from google import genai
 import os
-from pydantic import BaseModel
-import uuid  # For generating unique session IDs
+import uuid
+from google.genai import types
 
 class Gemini:
     """A class to interact with the Gemini language model."""
@@ -16,14 +15,14 @@ class Gemini:
             if not api_key:
                 raise ValueError("API key not provided and GEMINI_API_KEY environment variable not set.")
 
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel(model_name)
+        self.model = genai.Client(api_key=api_key,  http_options=types.HttpOptions(api_version='v1alpha'))
+        self.model_name = model_name
         self.chat_sessions = {}  # Store chat sessions here
 
     def start_chat(self) -> str:
         """Starts a new chat session and returns the session ID."""
         session_id = str(uuid.uuid4())
-        self.chat_sessions[session_id] = self.model.start_chat()
+        self.chat_sessions[session_id] = self.model.chats.create(model=self.model_name)
         return session_id
 
     def send_message(self, session_id: str, message: str) -> str:
@@ -38,7 +37,7 @@ class Gemini:
     def generate_content(self, message: str) -> str:
         """Generates a single response from Gemini without a chat session (async)."""
         try:
-            response =  self.model.generate_content(message)
+            response =  self.model.models.generate_content(model=self.model_name, contents=message)
             return response.text
         except Exception as e:
             raise ValueError(f"Error generating content: {e}")

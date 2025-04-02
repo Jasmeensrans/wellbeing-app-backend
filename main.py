@@ -6,13 +6,14 @@ from pydantic import BaseModel
 from ai.gemini import Gemini
 from ai.prompt import get_correlation_prompt_cot, get_initial_chat_prompt
 from db.database_manager import DatabaseManager
+from key import getKey
 from utils.entry_utils import get_entries_by_date_range
 
 SERVICE_ACCOUNT_KEY_PATH = "serviceAccountKey.json"
 
 app = FastAPI()
 db_manager = DatabaseManager(SERVICE_ACCOUNT_KEY_PATH)
-gemini_client = Gemini("AIzaSyCSQ72IcnYti_Jz0_q4-Yc0a0lT3y66cRA")
+gemini_client = Gemini(getKey())
 
 # genAI endpoints
 class StartChatRequest(BaseModel):
